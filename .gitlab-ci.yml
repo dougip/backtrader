@@ -1,0 +1,17 @@
+test-backtrader:
+  stage: test
+  variables:
+    DOCKER_IMAGE_NAME: ib-cp-login
+    DOCKER_IMAGE_PATH: $CI_REGISTRY_IMAGE/$DOCKER_IMAGE_NAME
+  services:
+    - docker:dind
+    - name: selenium/standalone-firefox
+      alias: webdriver
+    - name: registry.gitlab.com/dougip-trader/docker/ib-client-portal
+      alias: ibclientportal
+  image: $DOCKER_IMAGE_PATH:$CI_COMMIT_REF_NAME
+  before_script: []
+  script:
+    - export IBCP_IP=$(cat /etc/hosts | grep ibclientportal | awk '{print $1}')
+    - /ib_login.py -l http://$IBCP_IP:5000 -w http://webdriver:4444/wd/hub -u $IB_USER -p $IB_PASSWORD
+    - pip3 install -e .
